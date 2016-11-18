@@ -33,12 +33,18 @@ def exp_slew( rate, delta ):
     return delta
 
 
+SLEW_LIN  = 0
+SLEW_CDB  = 1
+SLEW_RC   = 2
+SLEW_NONE = 3
+
+
 def slew_up( curve, rate, current, target ):
-    if curve == 0:
+    if curve == SLEW_LIN:
         current += linear_slew[ rate & 15 ]
-    elif curve == 1:
+    elif curve == SLEW_CDB:
         current += exp_slew( rate, ocabs(current) )
-    elif curve == 2:
+    elif curve == SLEW_RC:
         current += exp_slew( rate, target - current )
         # ew... why?
         if current > target - 10:
@@ -53,11 +59,11 @@ def slew_up( curve, rate, current, target ):
 
 
 def slew_down( curve, rate, current, target ):
-    if curve == 0:
+    if curve == SLEW_LIN:
         current -= linear_slew[ rate & 15 ]
-    elif curve == 1:
+    elif curve == SLEW_CDB:
         current += exp_slew( rate, ~ocabs(current) )
-    elif curve == 2:
+    elif curve == SLEW_RC:
         current += exp_slew( rate, target - current )
     else:
         return target

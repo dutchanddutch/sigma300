@@ -1,9 +1,3 @@
-# TODO: slew mode 2 (RC) actually has a bug: it computes target-value as signed
-# 32-bit integer and uses that to determine the slew step.  This means that
-# e.g. slewing from -0x7fffffff to 1 will actually down-slew and underflow the
-# value.  This bug is not yet simulated.  Other slew modes are not affected.
-
-
 def ocabs( n ):
     """One's complement absolute value"""
     if n < 0:
@@ -17,6 +11,11 @@ linear_slew = [ round( 0x4000 * 10**(.5 - .1*rate) )  for rate in range(16) ]
 
 def exp_slew( rate, delta ):
     """Helper for computing exponential (constant-dB or RC) slew"""
+
+    # XXX silicon bug: delta is signed 32-bit, even though slew mode 2 (RC)
+    # requires a signed 33-bit delta.  This means that e.g. RC-slewing from
+    # -0x7fffffff to 1 will actually down-slew and underflow the value.
+    delta = ( delta & 0x7fffffff ) - ( delta & 0x80000000 )  # cast to int32
 
     # bits 0-1 of rate select factor from [1.5, 1.25, 1.125, 1.0]
     tmp = (rate + 1) & 3;
